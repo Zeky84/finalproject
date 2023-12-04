@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://thymeleaf.org">
+<head>
+    <title>SingUp</title>
+    <script src="https://kit.fontawesome.com/17e9292b04.js" crossorigin="anonymous"></script>
+</head>
+<body>
+<h2>Register below</h2>
+<form action="" method="post">
+    <div>
+        <label for="username">Username:</label>
+        <input type="text" th:field="${user.username}" id="username" />
+    </div>
+
+    <div style="position: relative; display: inline-block;">
+        <label for="password">Password:</label>
+        <input type="password" th:field="${user.password}" id="password" style="padding-right: 25px;"/>
+        <i class="fa-solid fa-eye" id="passwordEye" style="position: absolute; top: 50%; right: 10px; transform: translateY(-50%); cursor: pointer;"></i>
+    </div>
+    <br>
+    <div style="position: relative; display: inline-block;">
+        <label for="confirmPassword">Confirm Password:</label>
+        <input type="password" th:field="${user.confirmPassword}"  id="confirmPassword" style="padding-right: 25px;"/>
+        <i class="fa-solid fa-eye" id="#confirmPasswordEye" style="position: absolute; top: 50%; right: 10px; transform: translateY(-50%); cursor: pointer;"></i>
+    </div>
+    <!-- ... -->
+
+    <div>
+        <button type="button" id="registerBtn">Register if new user</button>
+    </div>
+</form>
+<script type="text/javascript">
+    var usernameTextBox = document.querySelector("#username");
+    var passwordTextBox = document.querySelector("#password"); // # is for selecting by id
+
+    // SELECTING MORE THAN ONE ELEMENT
+    var eyeIcons = document.querySelectorAll(".fa-eye"); // . is for selecting by class
+
+eyeIcons.forEach(function (eyeIcon) {
+  eyeIcon.addEventListener("click", function () {
+
+      // Find the related input box by using the previousElementSibling property
+      var relatedInput = eyeIcon.previousElementSibling;
+
+      if (eyeIcon.classList.contains("fa-eye")) {
+          eyeIcon.classList.remove("fa-eye");
+          eyeIcon.classList.add("fa-eye-slash");
+          relatedInput.setAttribute("type", "text");
+      } else {
+          eyeIcon.classList.replace("fa-eye-slash", "fa-eye");
+          relatedInput.setAttribute("type", "password");
+      }
+  });
+});
+
+    usernameTextBox.addEventListener("blur", function () {
+      var user = {
+        username: usernameTextBox.value,
+      };
+      checkIfUserExists(user)
+
+      async function checkIfUserExists(user){
+          try {
+              let responseEntity = await fetch(
+                  "/users/exists", // this is the fetch API
+                  {
+                    method: "POST",
+                    headers: {
+                      "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(user),
+                  }
+                )
+                console.log(responseEntity);
+                let data = await responseEntity.json();
+                if (data === true) {
+                  console.log(usernameTextBox.value);
+                  console.log("Username already exists. Find another one");
+                  //   usernameTextBox.focus();
+                  //   usernameTextBox.select();
+                  showErrorAnimation().then(function (message) {
+                    console.log(message + " ->this is the resolve message");
+                    console.log("We're in the callback function");
+                    usernameTextBox.style.backgroundColor = "rgb(255, 255, 255)";
+                  });
+                } else {
+                  console.log("Username is available");
+                }
+          } catch (error) {
+              console.log(error);
+          }
+      }
+    });
+
+    function showErrorAnimation() {
+      return new Promise(function (resolve, reject) {
+        console.log("We're in the showErrorAnimation function");
+        var i = 0;
+        var animationInterval = setInterval(function () {
+          i++;
+          usernameTextBox.style.backgroundColor = `rgb(${i}, 0, 0)`;
+          if (i >= 255) {
+            clearInterval(animationInterval);
+            console.log("Done executing the animation code");
+            resolve("Done executing the animation code");
+          }
+        }, 1);
+      });
+    }
+</script>
+</body>
+</html>
