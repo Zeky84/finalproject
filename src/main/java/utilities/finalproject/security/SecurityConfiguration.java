@@ -9,24 +9,40 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import utilities.finalproject.repository.UserRepository;
+import utilities.finalproject.service.UserDetailsServiceImpl;
 
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
 public class SecurityConfiguration {
+    /*
+    this is the class to handle the security configuration
+     */
+
+    private UserRepository userRepository;
+    private JwtAuthenticationFilter jwtAuthenticationFilter;
+
+    public SecurityConfiguration(UserRepository userRepository, JwtAuthenticationFilter jwtAuthenticationFilter) {
+        this.userRepository = userRepository;
+        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+    }
+
 
     @Bean
-    public PasswordEncoder passwordEncoder(){// It's being set in the authenticationProvider
+    public PasswordEncoder passwordEncoder() {// It's being set in the authenticationProvider
         return new BCryptPasswordEncoder();
     }
 
     @Bean
     public UserDetailsService userDetailsServiceMethod() {// It's being set in the authenticationProvider
-        return new UserDetailsServiceImpl();
+        return new UserDetailsServiceImpl(userRepository);
     }
 
 
@@ -34,17 +50,32 @@ public class SecurityConfiguration {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.csrf(AbstractHttpConfigurer::disable)//disabling this to allow sending raw data from postman
                 .authorizeHttpRequests((request) -> {
-                    request.requestMatchers("admin","logintest2").authenticated()
-                            .requestMatchers("/api/v1/users").permitAll();
+                    request
+                            .requestMatchers(
+                                    "admin",
+                                    "logintest2").authenticated()
+                            .requestMatchers("/api/v1/users",
+                                    "/api/v1/users/",
+                                    "/api/v1/users/login",
+                                    "/api/v1/users/refreshtoken",
+                                    "/signup",
+                                    "/signin").permitAll();
                 })
+                .sessionManagement((sessionManagement) ->
+                        sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authenticationProviderMethod())
-                .formLogin(Customizer.withDefaults());
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .formLogin(login->{
+                    login.loginPage("/signup").permitAll();
+                    login.defaultSuccessUrl("/admin");
+                    login.failureUrl("/login?error");
+                });
         return http.build();
     }
 
     @Bean
-    public AuthenticationProvider authenticationProviderMethod (){
-        DaoAuthenticationProvider daoAuthenticationProvider  = new DaoAuthenticationProvider();
+    public AuthenticationProvider authenticationProviderMethod() {
+        DaoAuthenticationProvider daoAuthenticationProvider = new DaoAuthenticationProvider();
         daoAuthenticationProvider.setPasswordEncoder(passwordEncoder());//Setting the passwordEncoder
         daoAuthenticationProvider.setUserDetailsService(userDetailsServiceMethod()); // Setting the userDetailsService
         return daoAuthenticationProvider;

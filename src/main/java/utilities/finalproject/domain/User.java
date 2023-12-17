@@ -7,9 +7,12 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.CreationTimestamp;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 @Entity(name = "users")
@@ -18,16 +21,16 @@ import java.util.List;
 @Data // from lombok
 @EqualsAndHashCode // from lombok
 @SuperBuilder // from lombok
-public class User {
+public class User implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
     private Long id;
 
-    @Column(name = "first_name", nullable = false)
+    @Column(name = "first_name", nullable = true)
     private String firstName;
 
-    @Column(name = "last_name", nullable = false)
+    @Column(name = "last_name", nullable = true)
     private String lastName;
 
     @Column(name = "username", nullable = false)
@@ -40,7 +43,7 @@ public class User {
     private String password;
 
     @Transient // this annotation is to avoid the checkPassword field to be persisted in the database.CHAT-GPT-4
-    private String checkPassword;
+    private String confirmPassword;
 
     @CreationTimestamp  // this annotation is to set the createdAt field to the current time when the user is created
     @Column(name = "created_at", nullable = false)
@@ -56,5 +59,33 @@ public class User {
     @OneToMany(mappedBy = "user")//FetchType.LAZY is the default
     private List<Post> posts = new ArrayList<>();
 
+    @OneToOne
+    private RefreshToken refreshToken;
+
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return null;
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return true;
+    }
 
 }
