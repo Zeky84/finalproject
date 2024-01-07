@@ -67,8 +67,30 @@
         }
         .form-group button:hover {/* Some from my chatapp */
         background-color: #24517a;
-
       }
+      .button-like {
+    background-color: #306DA6;
+    border: none;
+    color: white;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background-color 0.3s;
+    margin-left: 5px;
+    margin-right: 5px;
+    margin-top: 7px;
+    height: 40px;
+    width: 300px;
+    line-height: 40px;
+}
+
+.button-like:hover {
+    background-color: #24517a; /* Darker shade for hover */
+}
         /* General style for all input placeholders */
       .form-group input::placeholder {
           color: #306DA6; /* Light blueish-gray color for the placeholder text */
@@ -102,7 +124,7 @@
 <div class="form-container">
     <h2>Sing Up!</h2>
     <div>
-        <form action="" method="post">
+        <form th:action="@{/signup}" method="post">
             <div class="form-group">
                 <input type="text" th:field="${user.firstName}" id="firstName" placeholder="First name"/>
             </div>
@@ -131,15 +153,13 @@
             </div>
 
             <div class="form-group">
-                <button type="button" id="registerBtn">Create User Account</button>
+                <button type="submit" >Create User Account</button>
             </div>
         </form>
-
-        <div class="form-group">
-            <button type="button" id="gotoSignInBtn">Already User? Go to Sign-In</button>
-        </div>
+        <a href="/signin" class="button-like">Already User? Go to Sign-In</a>
     </div>
 </div>
+
 <script type="text/javascript">
     var usernameTextBox = document.querySelector("#username");
     var passwordTextBox = document.querySelector("#password"); // # is for selecting by id
@@ -163,7 +183,6 @@ eyeIcons.forEach(function (eyeIcon) {
       }
   });
 });
-
     usernameTextBox.addEventListener("blur", function () {
       var user = {
         username: usernameTextBox.value,

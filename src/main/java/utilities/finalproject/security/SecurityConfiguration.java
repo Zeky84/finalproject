@@ -55,20 +55,19 @@ public class SecurityConfiguration {
                                     "admin",
                                     "logintest2").authenticated()
                             .requestMatchers("/api/v1/users",
+                                    "/signup",
                                     "/api/v1/users/",
                                     "/api/v1/users/login",
-                                    "/api/v1/users/refreshtoken",
-                                    "/signup",
-                                    "/signin").permitAll();
+                                    "/api/v1/users/refreshtoken").permitAll();
                 })
-                .sessionManagement((sessionManagement) ->
+                .sessionManagement(sessionManagement ->
                         sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authenticationProviderMethod())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-                .formLogin(login->{
-                    login.loginPage("/signup").permitAll();
-                    login.defaultSuccessUrl("/admin");
-                    login.failureUrl("/login?error");
+                .formLogin(signin -> {
+                    signin.loginPage("/signin");
+                    signin.failureForwardUrl("/signin-error");
+                    signin.permitAll();
                 });
         return http.build();
     }
